@@ -1,6 +1,12 @@
 import React, { useEffect } from 'react';
-import Image from 'next/image';
-import { useConnect, useAccount, useNetwork, useContract } from 'wagmi';
+import {
+  useConnect,
+  useAccount,
+  useNetwork,
+  useContract,
+  useContractWrite,
+} from 'wagmi';
+import { NFTABI } from '../../contracts/NFTABI';
 
 export const useIsMounted = () => {
   const [mounted, setMounted] = React.useState(false);
@@ -15,6 +21,28 @@ export default function Home() {
   const [{ data: networkData, error: networkError, loading }, switchNetwork] =
     useNetwork();
   const isMounted = useIsMounted();
+
+  const [
+    {
+      data: transactionResponseData,
+      error: contractError,
+      loading: contractLoading,
+    },
+    write,
+  ] = useContractWrite(
+    {
+      addressOrName: '0xCa93F983864bc015f9792a7B4D4898959471d97D',
+      contractInterface: NFTABI,
+    },
+    'safeMint',
+    {
+      args: ['0xF39963D2A64Fb7Bb9FC38B34A942678152E5180F'],
+    }
+  );
+
+  useEffect(() => {
+    console.log(transactionResponseData);
+  }, [transactionResponseData]);
 
   const WalletButton = () => {
     console.log(accountData);
@@ -31,7 +59,10 @@ export default function Home() {
         );
       } else {
         return (
-          <button className='bg-gray-700 text-white p-2 rounded-md mt-4'>
+          <button
+            className='bg-gray-700 text-white p-2 rounded-md mt-4'
+            onClick={() => write()}
+          >
             Mint NFT
           </button>
         );
