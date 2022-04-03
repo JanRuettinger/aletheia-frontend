@@ -16,54 +16,44 @@ export default function Home() {
     useNetwork();
   const isMounted = useIsMounted();
 
-  // if (accountData) {
-  //   return (
-  //     <div>
-  //       <div>
-  //         {accountData.ens?.name
-  //           ? `${accountData.ens?.name} (${accountData.address})`
-  //           : accountData.address}
-  //       </div>
-  //       <div>Connected to {accountData.connector.name}</div>
-  //       <button onClick={disconnect}>Disconnect</button>
-  //       <div>
-  //         {networkData.chain?.name ?? networkData.chain?.id}{' '}
-  //         {networkData.chain?.unsupported && '(unsupported)'}
-  //       </div>
-
-  //       {switchNetwork &&
-  //         networkData.chains.map((x) =>
-  //           x.id === networkData.chain?.id ? null : (
-  //             <button key={x.id} onClick={() => switchNetwork(x.id)}>
-  //               Switch to {x.name}
-  //             </button>
-  //           )
-  //         )}
-
-  //       {error && <div>{error?.message}</div>}
-  //     </div>
-  //   );
-  // }
-
-  // {data.connectors.map((connector) => {
-  //   return (
-  //     <button
-  //       className='bg-blue-700 text-white p-4'
-  //       disabled={isMounted ? !connector.ready : false}
-  //       key={connector.id}
-  //       onClick={() => connect(connector)}
-  //     >
-  //       {isMounted
-  //         ? connector.name
-  //         : connector.id === 'injected'
-  //         ? connector.id
-  //         : connector.name}
-  //       {!connector.ready && '(unsupported)'}
-  //     </button>
-  //   );
-  // })}
-
-  // {error && <div>{error?.message ?? 'Failed to connect'}</div>}
+  const WalletButton = () => {
+    console.log(accountData);
+    if (accountData) {
+      if (networkData.chain?.id !== networkData.chains[0].id) {
+        return (
+          <button
+            className='bg-gray-700 text-white p-2 rounded-md mt-4'
+            key={networkData.chains[0].id}
+            onClick={() => switchNetwork(networkData.chains[0].id)}
+          >
+            Switch to Harmony Testnet
+          </button>
+        );
+      } else {
+        return (
+          <button className='bg-gray-700 text-white p-2 rounded-md mt-4'>
+            Mint NFT
+          </button>
+        );
+      }
+    } else {
+      return (
+        <button
+          className='bg-gray-700 text-white p-2 rounded-md mt-4'
+          disabled={isMounted ? !MetaMaskConnector.ready : false}
+          key={MetaMaskConnector.id}
+          onClick={() => connect(MetaMaskConnector)}
+        >
+          {isMounted
+            ? 'Connect with MetaMask'
+            : MetaMaskConnector.id === 'injected'
+            ? MetaMaskConnector.id
+            : MetaMaskConnector.name}
+          {!MetaMaskConnector.ready && '(unsupported)'}
+        </button>
+      );
+    }
+  };
 
   return (
     <div className='container flex p-4 mx-auto min-h-screen'>
@@ -80,19 +70,7 @@ export default function Home() {
                 <img src='images/zku_logo.png' alt='Picture of the author' />
               </div>
               <div className='mt-4'>5/1000 minted so far</div>
-              <button
-                className='bg-gray-700 text-white p-2 rounded-md mt-4'
-                disabled={isMounted ? !MetaMaskConnector.ready : false}
-                key={MetaMaskConnector.id}
-                onClick={() => connect(MetaMaskConnector)}
-              >
-                {isMounted
-                  ? 'Connect with MetaMask'
-                  : MetaMaskConnector.id === 'injected'
-                  ? MetaMaskConnector.id
-                  : MetaMaskConnector.name}
-                {!MetaMaskConnector.ready && '(unsupported)'}
-              </button>
+              <WalletButton />
             </div>
           </div>
           <div className='border-2 rounded-lg w-5/6 p-2'>
