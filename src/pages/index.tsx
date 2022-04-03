@@ -1,11 +1,6 @@
 import React, { useEffect } from 'react';
-import {
-  useConnect,
-  useAccount,
-  useNetwork,
-  useBalance,
-  useProvider,
-} from 'wagmi';
+import Image from 'next/image';
+import { useConnect, useAccount, useNetwork, useContract } from 'wagmi';
 
 export const useIsMounted = () => {
   const [mounted, setMounted] = React.useState(false);
@@ -15,77 +10,130 @@ export const useIsMounted = () => {
 
 export default function Home() {
   const [{ data, error }, connect] = useConnect();
+  const MetaMaskConnector = data.connectors[0];
   const [{ data: accountData }, disconnect] = useAccount();
-  const [{ data: balanceData, error: balanceError, loading: balanceLoading }] =
-    useBalance({
-      addressOrName: '0xF39963D2A64Fb7Bb9FC38B34A942678152E5180F',
-    });
   const [{ data: networkData, error: networkError, loading }, switchNetwork] =
     useNetwork();
   const isMounted = useIsMounted();
 
-  if (accountData) {
-    return (
-      <div>
-        <img src={accountData.ens?.avatar} alt='ENS Avatar' />
-        <div>
-          {accountData.ens?.name
-            ? `${accountData.ens?.name} (${accountData.address})`
-            : accountData.address}
-        </div>
-        <div>Connected to {accountData.connector.name}</div>
-        <button onClick={disconnect}>Disconnect</button>
-        <div>
-          {networkData.chain?.name ?? networkData.chain?.id}{' '}
-          {networkData.chain?.unsupported && '(unsupported)'}
-        </div>
-        {balanceLoading && <div>Fetching balance…</div>}
-        {balanceError && <div>Error fetching balance</div>}
-        <div>
-          {balanceData?.formatted}{' '}
-          {networkData.chains[0]?.nativeCurrency.symbol}
-        </div>
+  // if (accountData) {
+  //   return (
+  //     <div>
+  //       <div>
+  //         {accountData.ens?.name
+  //           ? `${accountData.ens?.name} (${accountData.address})`
+  //           : accountData.address}
+  //       </div>
+  //       <div>Connected to {accountData.connector.name}</div>
+  //       <button onClick={disconnect}>Disconnect</button>
+  //       <div>
+  //         {networkData.chain?.name ?? networkData.chain?.id}{' '}
+  //         {networkData.chain?.unsupported && '(unsupported)'}
+  //       </div>
 
-        {switchNetwork &&
-          networkData.chains.map((x) =>
-            x.id === networkData.chain?.id ? null : (
-              <button key={x.id} onClick={() => switchNetwork(x.id)}>
-                Switch to {x.name}
-              </button>
-            )
-          )}
+  //       {switchNetwork &&
+  //         networkData.chains.map((x) =>
+  //           x.id === networkData.chain?.id ? null : (
+  //             <button key={x.id} onClick={() => switchNetwork(x.id)}>
+  //               Switch to {x.name}
+  //             </button>
+  //           )
+  //         )}
 
-        {error && <div>{error?.message}</div>}
-      </div>
-    );
-  }
+  //       {error && <div>{error?.message}</div>}
+  //     </div>
+  //   );
+  // }
+
+  // {data.connectors.map((connector) => {
+  //   return (
+  //     <button
+  //       className='bg-blue-700 text-white p-4'
+  //       disabled={isMounted ? !connector.ready : false}
+  //       key={connector.id}
+  //       onClick={() => connect(connector)}
+  //     >
+  //       {isMounted
+  //         ? connector.name
+  //         : connector.id === 'injected'
+  //         ? connector.id
+  //         : connector.name}
+  //       {!connector.ready && '(unsupported)'}
+  //     </button>
+  //   );
+  // })}
+
+  // {error && <div>{error?.message ?? 'Failed to connect'}</div>}
 
   return (
-    <div className='container flex items-center p-4 mx-auto min-h-screen justify-center'>
-      <main>
-        <div>
-          {data.connectors.map((connector) => {
-            console.log('connector: ', connector);
-            console.log('connector ready: ', connector.ready);
-            return (
+    <div className='container flex p-4 mx-auto min-h-screen'>
+      <main className='w-full'>
+        <div className='text-center text-3xl font-mono'>Athletia</div>
+        <div className='grid grid-cols-3 mt-8'>
+          <div className='border-2 rounded-lg w-5/6 p-2'>
+            <div className='text-2xl font-semibold text-center'>
+              I. Mint an NFT
+            </div>
+            <div className='flex flex-col justify-between items-center'>
+              <div className='mt-4'>ZKU Supporter Token</div>
+              <div className='mt-4'>
+                <img src='images/zku_logo.png' alt='Picture of the author' />
+              </div>
+              <div className='mt-4'>5/1000 minted so far</div>
               <button
-                className='bg-blue-700 text-white p-4'
-                disabled={isMounted ? !connector.ready : false}
-                key={connector.id}
-                onClick={() => connect(connector)}
+                className='bg-gray-700 text-white p-2 rounded-md mt-4'
+                disabled={isMounted ? !MetaMaskConnector.ready : false}
+                key={MetaMaskConnector.id}
+                onClick={() => connect(MetaMaskConnector)}
               >
                 {isMounted
-                  ? connector.name
-                  : connector.id === 'injected'
-                  ? connector.id
-                  : connector.name}
-                {!connector.ready && '(unsupported)'}
+                  ? 'Connect with MetaMask'
+                  : MetaMaskConnector.id === 'injected'
+                  ? MetaMaskConnector.id
+                  : MetaMaskConnector.name}
+                {!MetaMaskConnector.ready && '(unsupported)'}
               </button>
-            );
-          })}
+            </div>
+          </div>
+          <div className='border-2 rounded-lg w-5/6 p-2'>
+            <div className='text-2xl font-semibold text-center'>
+              II. Wait for Merkle Tree Update
+            </div>
+            <div className='flex flex-col justify-between items-center w-3/4 mx-auto'>
+              <div className='mt-4 text-center'>
+                A Merkle Tree whose root is stored on chain keeps track of which
+                wallet has the right on chain reputation. In this case the
+                reputation is determined by fact if you own the ZKU Supporter
+                token or not.
+              </div>
+              <div className='mt-4'>Last Update: </div>
+              <div className='mt-4 text-center'>
+                Your NFT ownership is included in the Merkle Tree.
+              </div>
+            </div>
+          </div>
+          <div className='border-2 rounded-lg w-5/6 p-2'>
+            <div className='text-2xl font-semibold text-center'>
+              III. Register in Semaphore Group
+            </div>
 
-          {error && <div>{error?.message ?? 'Failed to connect'}</div>}
+            <div className='flex flex-col justify-between items-center w-3/4 mx-auto'>
+              <div className='mt-4 text-center'>
+                In the last step you generate a ZKP proving that you are part of
+                the Merkle, i.e. proving that you own an NFT. Now you are part
+                of the Semaphore group which allows you to login on websites
+                which use the membership in the Semaphore as a login method.
+              </div>
+              <div className='mt-4'>
+                <button className='bg-gray-700 text-white p-2 rounded-md'>
+                  Register in Semaphore
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
+        <div className='mt-16'>Supported websites:</div>
+        <div>What to learn more what's happening behind the scenes?</div>
       </main>
     </div>
   );
