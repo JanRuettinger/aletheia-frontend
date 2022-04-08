@@ -60,7 +60,7 @@ function MyApp({ Component, pageProps }: AppProps) {
     // <Provider provider={provider}>
     <Provider connectors={connectors} provider={provider}>
       <Head>
-        <title>NextJS TailwindCSS TypeScript Starter</title>
+        <title>Athletia - anonymous login</title>
         <meta name='viewport' content='initial-scale=1.0, width=device-width' />
       </Head>
       <Component {...pageProps} />
