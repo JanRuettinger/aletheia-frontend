@@ -1,12 +1,15 @@
-import React, { useEffect } from 'react';
+import { ethers } from 'ethers';
+import React, { useEffect, useState } from 'react';
 import {
   useConnect,
   useAccount,
   useNetwork,
   useContract,
   useContractWrite,
+  useProvider,
 } from 'wagmi';
 import { NFTABI } from '../../contracts/NFTABI';
+import { MerkleTreeABI } from '../../contracts/MerkleTreeABI';
 
 export const useIsMounted = () => {
   const [mounted, setMounted] = React.useState(false);
@@ -21,6 +24,15 @@ export default function Home() {
   const [{ data: networkData, error: networkError, loading }, switchNetwork] =
     useNetwork();
   const isMounted = useIsMounted();
+  const [numMintedNFTs, setNumMintedNFTs] = useState(0);
+  const [NFTMaxSupply, setNFTMaxSupply] = useState(0);
+  const [latestMerkleTreeUpdate, setLatestMerkleTreeUpdate] = useState(0);
+  const provider = useProvider();
+
+  const NFTContractAddress =
+    process.env.NEXT_PUBLIC_REPUTATION_1_CONTRACT_ADDRESS;
+  const MerkleTreeContractAddress =
+    process.env.NEXT_PUBLIC_MERKLE_TREE_CONTRACT_ADDRESS;
 
   const [
     {
@@ -31,7 +43,7 @@ export default function Home() {
     write,
   ] = useContractWrite(
     {
-      addressOrName: '0xCa93F983864bc015f9792a7B4D4898959471d97D',
+      addressOrName: NFTContractAddress,
       contractInterface: NFTABI,
     },
     'safeMint',
@@ -40,12 +52,92 @@ export default function Home() {
     }
   );
 
+  const contractNFT = useContract({
+    addressOrName: NFTContractAddress,
+    contractInterface: NFTABI,
+    signerOrProvider: provider,
+  });
+
+  const contractMerkleTree = useContract({
+    addressOrName: MerkleTreeContractAddress,
+    contractInterface: MerkleTreeABI,
+    signerOrProvider: provider,
+  });
+
+  // useEffect(() => {}, [transactionResponseData]);
+
+  async function getNumMintedNFTs() {
+    contractNFT.totalSupply().then((elm) => {
+      setNumMintedNFTs(elm.toString());
+    });
+  }
+
+  async function getTotalSupply() {
+    contractNFT.maxSupply().then((elm) => {
+      setNFTMaxSupply(elm.toString());
+    });
+  }
+
+  async function getLatestEvent() {
+    // const eventFilter = contractMerkleTree.filters.RootChanged();
+    const eventFilter = {
+      address: process.env.NEXT_PUBLIC_MERKLE_TREE_CONTRACT_ADDRESS,
+      topics: [ethers.utils.id('RootChanged(string,string)')],
+    };
+    let events = await contractMerkleTree.queryFilter(eventFilter, -1000);
+
+    const blockHash = events[events.length - 1].blockHash;
+    provider.getBlock(blockHash).then((block) => {
+      setLatestMerkleTreeUpdate(block.timestamp);
+    });
+  }
+
   useEffect(() => {
-    console.log(transactionResponseData);
-  }, [transactionResponseData]);
+    const fetchData = async () => {
+      await getNumMintedNFTs();
+      await getTotalSupply();
+      await getLatestEvent();
+    };
+    fetchData();
+    provider;
+  }, []);
+
+  useEffect(() => {
+    const filter = {
+      address: process.env.NEXT_PUBLIC_MERKLE_TREE_CONTRACT_ADDRESS,
+      topics: [ethers.utils.id('RootChanged(string,string)')],
+    };
+    provider.on(filter, (log) => {
+      const blockHash = log.blockHash;
+      provider.getBlock(blockHash).then((block) => {
+        setLatestMerkleTreeUpdate(block.timestamp);
+      });
+    });
+
+    provider.on('block', (block) => {
+      getNumMintedNFTs();
+    });
+
+    const unsubscribe = () => {
+      provider.removeAllListeners();
+    };
+
+    return unsubscribe;
+  }, [provider]);
+
+  const formatTimeStamp = (timestamp) => {
+    const date = new Date(timestamp * 1000);
+    if (timestamp == 0) {
+      return 'not updated since last refresh';
+    }
+    return date.toLocaleDateString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
 
   const WalletButton = () => {
-    console.log(accountData);
+    // console.log(accountData);
     if (accountData) {
       if (networkData.chain?.id !== networkData.chains[0].id) {
         return (
@@ -61,7 +153,10 @@ export default function Home() {
         return (
           <button
             className='bg-gray-700 text-white p-2 rounded-md mt-4'
-            onClick={() => write()}
+            onClick={() => {
+              write();
+              // setTimeout(() => getNumMintedNFTs(), 3000);
+            }}
           >
             Mint NFT
           </button>
@@ -100,7 +195,9 @@ export default function Home() {
               <div className='mt-4'>
                 <img src='images/zku_logo.png' alt='Picture of the author' />
               </div>
-              <div className='mt-4'>5/1000 minted so far</div>
+              <div className='mt-4'>
+                {numMintedNFTs}/{NFTMaxSupply} minted so far
+              </div>
               <WalletButton />
             </div>
           </div>
@@ -115,7 +212,9 @@ export default function Home() {
                 reputation is determined by fact if you own the ZKU Supporter
                 token or not.
               </div>
-              <div className='mt-4'>Last Update: </div>
+              <div className='mt-4'>
+                Last Update: {formatTimeStamp(latestMerkleTreeUpdate)}{' '}
+              </div>
               <div className='mt-4 text-center'>
                 Your NFT ownership is included in the Merkle Tree.
               </div>

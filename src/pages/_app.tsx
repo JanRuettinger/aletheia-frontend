@@ -12,6 +12,11 @@ const provider = new providers.JsonRpcProvider(
   1666700000
 );
 
+// const provider = new providers.JsonRpcProvider(
+//   'https://api.s0.b.hmny.io',
+//   1666700000
+// );
+
 // export type Network = {
 //   name: string,
 //   chainId: number,
@@ -42,8 +47,6 @@ const chains = [
 // name: "Mainnet"
 // nativeCurrency: {name: 'Ether', symbol: 'ETH', decimals: 18}
 // rpcUrls: ['https://mainnet.infura.io/v3']
-
-console.log('Default chains:', defaultChains);
 
 // Set up connectors
 const connectors = () => {
