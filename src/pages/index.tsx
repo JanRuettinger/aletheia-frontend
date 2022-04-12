@@ -85,6 +85,9 @@ export default function Home() {
       topics: [ethers.utils.id('RootChanged(string,string)')],
     };
     let events = await contractMerkleTree.queryFilter(eventFilter, -1000);
+    if (events.length == 0) {
+      events = await contractMerkleTree.queryFilter(eventFilter, -100000);
+    }
 
     const blockHash = events[events.length - 1].blockHash;
     provider.getBlock(blockHash).then((block) => {
