@@ -9,7 +9,7 @@ import {
   useProvider,
 } from 'wagmi';
 import { NFTABI } from '../../contracts/NFTABI';
-import { MerkleTreeABI } from '../../contracts/MerkleTreeABI';
+import { AlethieiaABI } from '../../contracts/AlethieiaABI';
 
 export const useIsMounted = () => {
   const [mounted, setMounted] = React.useState(false);
@@ -32,7 +32,7 @@ export default function Home() {
   const NFTContractAddress =
     process.env.NEXT_PUBLIC_REPUTATION_1_CONTRACT_ADDRESS;
   const MerkleTreeContractAddress =
-    process.env.NEXT_PUBLIC_MERKLE_TREE_CONTRACT_ADDRESS;
+    process.env.NEXT_PUBLIC_ALETHEIA_CONTRACT_ADDRESS;
 
   const [
     {
@@ -60,11 +60,9 @@ export default function Home() {
 
   const contractMerkleTree = useContract({
     addressOrName: MerkleTreeContractAddress,
-    contractInterface: MerkleTreeABI,
+    contractInterface: AlethieiaABI,
     signerOrProvider: provider,
   });
-
-  // useEffect(() => {}, [transactionResponseData]);
 
   async function getNumMintedNFTs() {
     contractNFT.totalSupply().then((elm) => {
@@ -81,8 +79,8 @@ export default function Home() {
   async function getLatestEvent() {
     // const eventFilter = contractMerkleTree.filters.RootChanged();
     const eventFilter = {
-      address: process.env.NEXT_PUBLIC_MERKLE_TREE_CONTRACT_ADDRESS,
-      topics: [ethers.utils.id('RootChanged(string,string)')],
+      address: process.env.NEXT_PUBLIC_ALETHEIA_CONTRACT_ADDRESS,
+      topics: [ethers.utils.id('AttestationRootChanged(string,string)')],
     };
     let events = await contractMerkleTree.queryFilter(eventFilter, -1000);
     if (events.length == 0) {
@@ -107,7 +105,7 @@ export default function Home() {
 
   useEffect(() => {
     const filter = {
-      address: process.env.NEXT_PUBLIC_MERKLE_TREE_CONTRACT_ADDRESS,
+      address: process.env.NEXT_PUBLIC_ALETHEIA_CONTRACT_ADDRESS,
       topics: [ethers.utils.id('RootChanged(string,string)')],
     };
     provider.on(filter, (log) => {
