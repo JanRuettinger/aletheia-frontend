@@ -22,3 +22,25 @@ export async function getTokenIDsFromContract(
     throw error;
   }
 }
+
+export async function sendICToRelayer(identityCommitment: string) {
+  console.log('in api submit');
+  try {
+    const reponse = await axios.post(
+      'http://localhost:4000/identitycommitments',
+      {
+        identityCommitment: identityCommitment,
+      },
+      {
+        headers: {
+          'Content-type': 'application/json; charset=UTF-8',
+        },
+      }
+    );
+    console.log('response: ', reponse);
+    return true;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+}

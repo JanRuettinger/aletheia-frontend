@@ -8,8 +8,12 @@ import {
   useContractWrite,
   useProvider,
 } from 'wagmi';
+import Alert from '../components/Alert';
 import { NFTABI } from '../../contracts/NFTABI';
 import { AlethieiaABI } from '../../contracts/AlethieiaABI';
+import { poseidon } from 'circomlibjs'; // v0.0.8
+import { sendICToRelayer } from '../api';
+import { randomUUID } from 'crypto';
 
 export const useIsMounted = () => {
   const [mounted, setMounted] = React.useState(false);
@@ -26,8 +30,13 @@ export default function Home() {
   const isMounted = useIsMounted();
   const [numMintedNFTs, setNumMintedNFTs] = useState(0);
   const [NFTMaxSupply, setNFTMaxSupply] = useState(0);
+  const [userSecret, setUserSecret] = useState('');
   const [latestMerkleTreeUpdate, setLatestMerkleTreeUpdate] = useState(0);
   const provider = useProvider();
+  const [isLoading, setIsLoading] = useState(false);
+  const [alertText, setAlertText] = useState('');
+  const [alertType, setAlertType] = useState('');
+  const [alertHidden, setAlertHidden] = useState(true);
 
   const NFTContractAddress =
     process.env.NEXT_PUBLIC_REPUTATION_1_CONTRACT_ADDRESS;
@@ -46,11 +55,37 @@ export default function Home() {
       addressOrName: NFTContractAddress,
       contractInterface: NFTABI,
     },
-    'safeMint',
-    {
-      args: ['0xF39963D2A64Fb7Bb9FC38B34A942678152E5180F'],
-    }
+    'safeMint'
   );
+
+  const onSubmitSemaphore = async () => {
+    // generate identity and send it to backend api
+    // const identity = new ZkIdentity();
+    // Hash public key + secret
+    setIsLoading(true);
+    const pubAddr = accountData.address;
+    if (userSecret == '') {
+      return;
+    }
+    const secret = ethers.utils.formatBytes32String(userSecret);
+    const identityCommitment = poseidon([pubAddr, secret]);
+    try {
+      const resp = await sendICToRelayer(identityCommitment.toString());
+      if (resp == true) {
+        setAlertText('Successfully added your identity.');
+        setAlertType('success');
+        setAlertHidden(false);
+      }
+    } catch (error) {
+      setAlertText('An error occured while adding your identity.');
+      setAlertType('error');
+      setAlertHidden(false);
+      console.log('in submit ');
+    } finally {
+      setTimeout(() => setAlertHidden(true), 3000);
+      setIsLoading(false);
+    }
+  };
 
   const contractNFT = useContract({
     addressOrName: NFTContractAddress,
@@ -155,7 +190,9 @@ export default function Home() {
           <button
             className='bg-gray-700 text-white p-2 rounded-md mt-4'
             onClick={() => {
-              write();
+              write({
+                args: [accountData.address],
+              });
               // setTimeout(() => getNumMintedNFTs(), 3000);
             }}
           >
@@ -186,6 +223,11 @@ export default function Home() {
     <div className='container flex p-4 mx-auto min-h-screen'>
       <main className='w-full'>
         <div className='text-center text-3xl font-mono'>Athletia</div>
+        <Alert
+          alertType={alertType}
+          alertText={alertText}
+          alertHidden={alertHidden}
+        />
         <div className='grid grid-cols-3 mt-8'>
           <div className='border-2 rounded-lg w-5/6 p-2'>
             <div className='text-2xl font-semibold text-center'>
@@ -233,8 +275,19 @@ export default function Home() {
                 of the Semaphore group which allows you to login on websites
                 which use the membership in the Semaphore as a login method.
               </div>
-              <div className='mt-4'>
-                <button className='bg-gray-700 text-white p-2 rounded-md'>
+              <div className='mt-4 flex flex-col'>
+                <div className='border-gray-700 text-gray-700  border-2 p-2 rounded-md'>
+                  <input
+                    type='password'
+                    placeholder='password'
+                    onChange={(e) => setUserSecret(e.target.value)}
+                  />
+                </div>
+                <button
+                  className='bg-gray-700 text-white p-2 rounded-md mt-2'
+                  onClick={() => onSubmitSemaphore()}
+                  disabled={accountData ? false : true}
+                >
                   Register in Semaphore
                 </button>
               </div>
