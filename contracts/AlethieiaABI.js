@@ -27,33 +27,8 @@ export const AlethieiaABI = [
         name: 'identityCommitment',
         type: 'uint256',
       },
-      {
-        indexed: false,
-        internalType: 'uint256',
-        name: 'root',
-        type: 'uint256',
-      },
     ],
     name: 'MemberAdded',
-    type: 'event',
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: 'uint256',
-        name: 'identityCommitment',
-        type: 'uint256',
-      },
-      {
-        indexed: false,
-        internalType: 'uint256',
-        name: 'root',
-        type: 'uint256',
-      },
-    ],
-    name: 'MemberRemoved',
     type: 'event',
   },
   {
@@ -128,45 +103,6 @@ export const AlethieiaABI = [
   },
   {
     inputs: [],
-    name: 'getIdentityTreeDepth',
-    outputs: [
-      {
-        internalType: 'uint8',
-        name: '',
-        type: 'uint8',
-      },
-    ],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [],
-    name: 'getIdentityTreeNumberOfLeaves',
-    outputs: [
-      {
-        internalType: 'uint256',
-        name: '',
-        type: 'uint256',
-      },
-    ],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [],
-    name: 'getIdentityTreeRoot',
-    outputs: [
-      {
-        internalType: 'uint256',
-        name: '',
-        type: 'uint256',
-      },
-    ],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [],
     name: 'owner',
     outputs: [
       {
@@ -176,29 +112,6 @@ export const AlethieiaABI = [
       },
     ],
     stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [
-      {
-        internalType: 'uint256',
-        name: 'identityCommitment',
-        type: 'uint256',
-      },
-      {
-        internalType: 'uint256[]',
-        name: 'proofSiblings',
-        type: 'uint256[]',
-      },
-      {
-        internalType: 'uint8[]',
-        name: 'proofPathIndices',
-        type: 'uint8[]',
-      },
-    ],
-    name: 'removeMember',
-    outputs: [],
-    stateMutability: 'nonpayable',
     type: 'function',
   },
   {

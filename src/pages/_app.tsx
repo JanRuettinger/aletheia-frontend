@@ -63,7 +63,7 @@ function MyApp({ Component, pageProps }: AppProps) {
     // <Provider provider={provider}>
     <Provider connectors={connectors} provider={provider}>
       <Head>
-        <title>Athletia - anonymous login</title>
+        <title>Aletheia - anonymous login</title>
         <meta name='viewport' content='initial-scale=1.0, width=device-width' />
       </Head>
       <Component {...pageProps} />

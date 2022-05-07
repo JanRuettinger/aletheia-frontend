@@ -9,11 +9,12 @@ import {
   useProvider,
 } from 'wagmi';
 import Alert from '../components/Alert';
-import { NFTABI } from '../../contracts/NFTABI';
+import { ZkuNFTABI } from '../../contracts/ZKUNFTABI';
+import { OrcaNFTABI } from '../../contracts/OrcaNFTABI';
 import { AlethieiaABI } from '../../contracts/AlethieiaABI';
 import { poseidon } from 'circomlibjs'; // v0.0.8
-import { sendICToRelayer } from '../api';
-import { randomUUID } from 'crypto';
+import { requestTokensFromRelayer, sendICToRelayer } from '../api';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 export const useIsMounted = () => {
   const [mounted, setMounted] = React.useState(false);
@@ -28,8 +29,10 @@ export default function Home() {
   const [{ data: networkData, error: networkError, loading }, switchNetwork] =
     useNetwork();
   const isMounted = useIsMounted();
-  const [numMintedNFTs, setNumMintedNFTs] = useState(0);
-  const [NFTMaxSupply, setNFTMaxSupply] = useState(0);
+  const [numMintedZKUNFTs, setNumMintedZKUNFTs] = useState(0);
+  const [numMintedORCANFTs, setNumMintedORCANFTs] = useState(0);
+  const [ZKUNFTMaxSupply, setZKUNFTMaxSupply] = useState(0);
+  const [ORCANFTMaxSupply, setORCANFTMaxSupply] = useState(0);
   const [userSecret, setUserSecret] = useState('');
   const [latestMerkleTreeUpdate, setLatestMerkleTreeUpdate] = useState(0);
   const provider = useProvider();
@@ -37,37 +40,24 @@ export default function Home() {
   const [alertText, setAlertText] = useState('');
   const [alertType, setAlertType] = useState('');
   const [alertHidden, setAlertHidden] = useState(true);
+  const [receivedTokens, setReceivedTokens] = useState(false);
 
-  const NFTContractAddress =
-    process.env.NEXT_PUBLIC_REPUTATION_1_CONTRACT_ADDRESS;
+  const ZKUNFTContractAddress = process.env.NEXT_PUBLIC_NFT_1_CONTRACT_ADDRESS;
+  const ORCANFTContractAddress = process.env.NEXT_PUBLIC_NFT_2_CONTRACT_ADDRESS;
   const MerkleTreeContractAddress =
     process.env.NEXT_PUBLIC_ALETHEIA_CONTRACT_ADDRESS;
-
-  const [
-    {
-      data: transactionResponseData,
-      error: contractError,
-      loading: contractLoading,
-    },
-    write,
-  ] = useContractWrite(
-    {
-      addressOrName: NFTContractAddress,
-      contractInterface: NFTABI,
-    },
-    'safeMint'
-  );
 
   const onSubmitSemaphore = async () => {
     // generate identity and send it to backend api
     // const identity = new ZkIdentity();
     // Hash public key + secret
     setIsLoading(true);
-    const pubAddr = accountData.address;
+    const pubAddr = accountData.address.toLowerCase();
     if (userSecret == '') {
       return;
     }
     const secret = ethers.utils.formatBytes32String(userSecret);
+    console.log(secret, pubAddr);
     const identityCommitment = poseidon([pubAddr, secret]);
     try {
       const resp = await sendICToRelayer(identityCommitment.toString());
@@ -82,16 +72,39 @@ export default function Home() {
       setAlertHidden(false);
       console.log('in submit ');
     } finally {
-      setTimeout(() => setAlertHidden(true), 3000);
+      setTimeout(() => setAlertHidden(true), 2000);
       setIsLoading(false);
     }
   };
 
-  const contractNFT = useContract({
-    addressOrName: NFTContractAddress,
-    contractInterface: NFTABI,
+  const contractZKUNFT = useContract({
+    addressOrName: ZKUNFTContractAddress,
+    contractInterface: ZkuNFTABI,
     signerOrProvider: provider,
   });
+
+  const [{}, safeMintZKU] = useContractWrite(
+    {
+      addressOrName: ZKUNFTContractAddress,
+      contractInterface: ZkuNFTABI,
+    },
+    'safeMint'
+  );
+
+  const contractORCANFT = useContract({
+    addressOrName: ORCANFTContractAddress,
+    contractInterface: OrcaNFTABI,
+    signerOrProvider: provider,
+  });
+
+  // contractWriteORCANFT
+  const [{}, safeMintORCA] = useContractWrite(
+    {
+      addressOrName: ORCANFTContractAddress,
+      contractInterface: OrcaNFTABI,
+    },
+    'safeMint'
+  );
 
   const contractMerkleTree = useContract({
     addressOrName: MerkleTreeContractAddress,
@@ -100,14 +113,21 @@ export default function Home() {
   });
 
   async function getNumMintedNFTs() {
-    contractNFT.totalSupply().then((elm) => {
-      setNumMintedNFTs(elm.toString());
+    contractZKUNFT.totalSupply().then((elm) => {
+      setNumMintedZKUNFTs(elm.toString());
+    });
+
+    contractORCANFT.totalSupply().then((elm) => {
+      setNumMintedORCANFTs(elm.toString());
     });
   }
 
   async function getTotalSupply() {
-    contractNFT.maxSupply().then((elm) => {
-      setNFTMaxSupply(elm.toString());
+    contractZKUNFT.maxSupply().then((elm) => {
+      setZKUNFTMaxSupply(elm.toString());
+    });
+    contractORCANFT.maxSupply().then((elm) => {
+      setORCANFTMaxSupply(elm.toString());
     });
   }
 
@@ -121,7 +141,7 @@ export default function Home() {
     if (events.length == 0) {
       events = await contractMerkleTree.queryFilter(eventFilter, -100000);
     }
-
+    console.log(events);
     const blockHash = events[events.length - 1].blockHash;
     provider.getBlock(blockHash).then((block) => {
       setLatestMerkleTreeUpdate(block.timestamp);
@@ -141,7 +161,7 @@ export default function Home() {
   useEffect(() => {
     const filter = {
       address: process.env.NEXT_PUBLIC_ALETHEIA_CONTRACT_ADDRESS,
-      topics: [ethers.utils.id('RootChanged(string,string)')],
+      topics: [ethers.utils.id('AttestationRootChanged(string,string)')],
     };
     provider.on(filter, (log) => {
       const blockHash = log.blockHash;
@@ -173,7 +193,6 @@ export default function Home() {
   };
 
   const WalletButton = () => {
-    // console.log(accountData);
     if (accountData) {
       if (networkData.chain?.id !== networkData.chains[0].id) {
         return (
@@ -188,15 +207,35 @@ export default function Home() {
       } else {
         return (
           <button
-            className='bg-gray-700 text-white p-2 rounded-md mt-4'
-            onClick={() => {
-              write({
-                args: [accountData.address],
-              });
-              // setTimeout(() => getNumMintedNFTs(), 3000);
+            className={`${
+              receivedTokens ? 'bg-gray-300' : 'bg-gray-700'
+            } text-white p-2 rounded-md mt-4`}
+            onClick={async () => {
+              setIsLoading(true);
+              const resp = await requestTokensFromRelayer(accountData.address);
+              setIsLoading(false);
+              if (resp == 1) {
+                setReceivedTokens(true);
+                setAlertText('You just received 0.1 ONE.');
+                setAlertType('success');
+                setAlertHidden(false);
+              } else if (resp == 2) {
+                setReceivedTokens(true);
+                setAlertText(
+                  "Your balance is high enough you don't need tokens."
+                );
+                setAlertType('warning');
+                setAlertHidden(false);
+              } else {
+                setAlertText('Something went wrong');
+                setAlertType('error');
+                setAlertHidden(false);
+              }
+              setTimeout(() => setAlertHidden(true), 3000);
             }}
+            disabled={receivedTokens}
           >
-            Mint NFT
+            Request Harmony Tokens
           </button>
         );
       }
@@ -219,29 +258,81 @@ export default function Home() {
     }
   };
 
+  const MintButton = (props) => {
+    if (props.NFTname == 'ZKU') {
+      return (
+        <button
+          className='bg-gray-700 text-white p-2 rounded-md mt-4'
+          disabled={isMounted ? !accountData : false}
+          key={MetaMaskConnector.id}
+          onClick={() =>
+            safeMintZKU({
+              args: [accountData?.address],
+            })
+          }
+        >
+          Mint NFT
+        </button>
+      );
+    } else {
+      return (
+        <button
+          className='bg-gray-700 text-white p-2 rounded-md mt-4'
+          disabled={isMounted ? !accountData : false}
+          key={MetaMaskConnector.id}
+          onClick={() => {
+            safeMintORCA({
+              args: [accountData?.address],
+            });
+          }}
+        >
+          Mint NFT
+        </button>
+      );
+    }
+  };
+
   return (
     <div className='container flex p-4 mx-auto min-h-screen'>
+      {isLoading ? <LoadingSpinner /> : null}
       <main className='w-full'>
-        <div className='text-center text-3xl font-mono'>Athletia</div>
+        <div className='text-center text-3xl font-mono'>Aletheia</div>
         <Alert
           alertType={alertType}
           alertText={alertText}
           alertHidden={alertHidden}
         />
+        <div className='flex flex-row justify-center'>
+          <div className=''>
+            <WalletButton />
+          </div>
+        </div>
         <div className='grid grid-cols-3 mt-8'>
-          <div className='border-2 rounded-lg w-5/6 p-2'>
+          <div className='border-2 rounded-lg w-5/6 p-2 flex flex-col'>
             <div className='text-2xl font-semibold text-center'>
               I. Mint an NFT
             </div>
-            <div className='flex flex-col justify-between items-center'>
-              <div className='mt-4'>ZKU Supporter Token</div>
-              <div className='mt-4'>
-                <img src='images/zku_logo.png' alt='Picture of the author' />
+            <div className='flex flex-row justify-center'>
+              <div className='flex flex-col justify-between items-center'>
+                <div className='mt-4'>ZKU Supporter Token</div>
+                <div className='mt-4'>
+                  <img src='images/zku_logo.png' alt='Picture of the author' />
+                </div>
+                <div className='mt-4'>
+                  {numMintedZKUNFTs}/{ZKUNFTMaxSupply} minted so far
+                </div>
+                <MintButton NFTname='ZKU' />
               </div>
-              <div className='mt-4'>
-                {numMintedNFTs}/{NFTMaxSupply} minted so far
+              <div className='flex flex-col justify-between items-center'>
+                <div className='mt-4'>Orca Token</div>
+                <div className='mt-4'>
+                  <img src='images/orca.png' alt='Picture of the author' />
+                </div>
+                <div className='mt-4'>
+                  {numMintedORCANFTs}/{ORCANFTMaxSupply} minted so far
+                </div>
+                <MintButton NFTname='Orca' />
               </div>
-              <WalletButton />
             </div>
           </div>
           <div className='border-2 rounded-lg w-5/6 p-2'>
@@ -265,7 +356,7 @@ export default function Home() {
           </div>
           <div className='border-2 rounded-lg w-5/6 p-2'>
             <div className='text-2xl font-semibold text-center'>
-              III. Register in Semaphore Group
+              III. Register Password
             </div>
 
             <div className='flex flex-col justify-between items-center w-3/4 mx-auto'>
@@ -288,7 +379,7 @@ export default function Home() {
                   onClick={() => onSubmitSemaphore()}
                   disabled={accountData ? false : true}
                 >
-                  Register in Semaphore
+                  Register Password
                 </button>
               </div>
             </div>

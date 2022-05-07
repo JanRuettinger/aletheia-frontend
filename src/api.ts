@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { responseSymbol } from 'next/dist/server/web/spec-compliant/fetch-event';
 import { TokenMetaData } from './types';
 
 const chainID = process.env.NEXT_PUBLIC_CHAIN_ID!;
@@ -24,7 +25,6 @@ export async function getTokenIDsFromContract(
 }
 
 export async function sendICToRelayer(identityCommitment: string) {
-  console.log('in api submit');
   try {
     const reponse = await axios.post(
       'http://localhost:4000/identitycommitments',
@@ -37,6 +37,43 @@ export async function sendICToRelayer(identityCommitment: string) {
         },
       }
     );
+    console.log('response: ', reponse);
+    return true;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+}
+
+export async function requestTokensFromRelayer(address: string) {
+  console.log('in request tokens');
+  try {
+    const response = await axios.post(
+      'http://localhost:4000/tokens',
+      {
+        address: address,
+      },
+      {
+        headers: {
+          'Content-type': 'application/json; charset=UTF-8',
+        },
+      }
+    );
+    console.log('response: ', response);
+    return response.data.status;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+}
+
+export async function requestLatestUpdateTimestamp() {
+  try {
+    const reponse = await axios.get('http://localhost:4000/update', {
+      headers: {
+        'Content-type': 'application/json; charset=UTF-8',
+      },
+    });
     console.log('response: ', reponse);
     return true;
   } catch (error) {
