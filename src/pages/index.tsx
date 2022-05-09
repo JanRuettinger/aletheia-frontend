@@ -48,6 +48,9 @@ export default function Home() {
   const MerkleTreeContractAddress =
     process.env.NEXT_PUBLIC_ALETHEIA_CONTRACT_ADDRESS;
 
+  const CHAIN_INDEX =
+    process.env.NEXT_PUBLIC_VERCEL_ENV == 'production' ? 1 : 0;
+
   const onSubmitSemaphore = async () => {
     // generate identity and send it to backend api
     // const identity = new ZkIdentity();
@@ -141,7 +144,6 @@ export default function Home() {
     if (events.length == 0) {
       events = await contractMerkleTree.queryFilter(eventFilter, -100000);
     }
-    console.log(events);
     const blockHash = events[events.length - 1].blockHash;
     provider.getBlock(blockHash).then((block) => {
       setLatestMerkleTreeUpdate(block.timestamp);
@@ -194,17 +196,13 @@ export default function Home() {
 
   const WalletButton = () => {
     if (accountData) {
-      if (networkData.chain?.id !== networkData.chains[0].id) {
+      if (networkData.chain?.id !== networkData.chains[CHAIN_INDEX].id) {
         return (
           <button
             className='bg-gray-700 text-white p-2 rounded-md mt-4'
-            key={networkData.chains[0].id}
+            key={networkData.chains[CHAIN_INDEX].id}
             onClick={() => {
-              switchNetwork(
-                networkData.chains[
-                  process.env.NEXT_PUBLIC_VERCEL_ENV == 'production' ? 1 : 0
-                ].id
-              );
+              switchNetwork(networkData.chains[CHAIN_INDEX].id);
             }}
           >
             Switch to Harmony{' '}
@@ -311,7 +309,6 @@ export default function Home() {
           alertText={alertText}
           alertHidden={alertHidden}
         />
-        ENV: {process.env.NEXT_PUBLIC_VERCEL_ENV}
         <div className='flex flex-row justify-center'>
           <div className=''>
             <WalletButton />
