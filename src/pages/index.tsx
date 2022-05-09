@@ -350,14 +350,11 @@ export default function Home() {
               <div className='mt-4 text-center'>
                 A Merkle Tree whose root is stored on chain keeps track of which
                 wallet has the right on chain reputation. In this case the
-                reputation is determined by fact if you own the ZKU Supporter
-                token or not.
+                reputation is determined by fact if you are a proud owner of a
+                ZKU Support NFT or an ORCA NFT.
               </div>
               <div className='mt-4'>
                 Last Update: {formatTimeStamp(latestMerkleTreeUpdate)}{' '}
-              </div>
-              <div className='mt-4 text-center'>
-                Your NFT ownership is included in the Merkle Tree.
               </div>
             </div>
           </div>
@@ -368,10 +365,8 @@ export default function Home() {
 
             <div className='flex flex-col justify-between items-center w-3/4 mx-auto'>
               <div className='mt-4 text-center'>
-                In the last step you generate a ZKP proving that you are part of
-                the Merkle, i.e. proving that you own an NFT. Now you are part
-                of the Semaphore group which allows you to login on websites
-                which use the membership in the Semaphore as a login method.
+                In the last step you define a global password. You can use this
+                password on all supporting websites.
               </div>
               <div className='mt-4 flex flex-col'>
                 <div className='border-gray-700 text-gray-700  border-2 p-2 rounded-md'>
