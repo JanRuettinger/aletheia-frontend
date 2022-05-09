@@ -205,7 +205,6 @@ export default function Home() {
                   process.env.NEXT_PUBLIC_VERCEL_ENV == 'production' ? 1 : 0
                 ].id
               );
-              console.log('env:', process.env.NEXT_PUBLIC_VERCEL_ENV);
             }}
           >
             Switch to Harmony{' '}
@@ -312,6 +311,7 @@ export default function Home() {
           alertText={alertText}
           alertHidden={alertHidden}
         />
+        ENV: {process.env.NEXT_PUBLIC_VERCEL_ENV}
         <div className='flex flex-row justify-center'>
           <div className=''>
             <WalletButton />
