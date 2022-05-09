@@ -202,12 +202,15 @@ export default function Home() {
             onClick={() =>
               switchNetwork(
                 networkData.chains[
-                  process.env.VERCEL_ENV == 'production' ? 1 : 0
+                  process.env.NEXT_PUBLIC_VERCEL_ENV == 'production' ? 1 : 0
                 ].id
               )
             }
           >
-            Switch to Harmony Testnet
+            Switch to Harmony{' '}
+            {process.env.NEXT_PUBLIC_VERCEL_ENV == 'production'
+              ? 'Mainnet'
+              : 'Testnet'}
           </button>
         );
       } else {
