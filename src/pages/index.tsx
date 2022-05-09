@@ -223,7 +223,7 @@ export default function Home() {
               setIsLoading(false);
               if (resp == 1) {
                 setReceivedTokens(true);
-                setAlertText('You just received 0.1 ONE.');
+                setAlertText('You just received 0.01 ONE.');
                 setAlertType('success');
                 setAlertHidden(false);
               } else if (resp == 2) {

@@ -4,6 +4,7 @@ import { TokenMetaData } from './types';
 
 const chainID = process.env.NEXT_PUBLIC_CHAIN_ID;
 const apiKey = process.env.NEXT_PUBLIC_COVALENT_API_KEY;
+const relayerURL = process.env.NEXT_PUBLIC_RELAYER_URL;
 
 export async function getTokenIDsFromContract(
   contractAddress: string
@@ -22,7 +23,7 @@ export async function getTokenIDsFromContract(
 export async function sendICToRelayer(identityCommitment: string) {
   try {
     const reponse = await axios.post(
-      'http://localhost:4000/identitycommitments',
+      relayerURL + 'identitycommitments',
       {
         identityCommitment: identityCommitment,
       },
@@ -44,7 +45,7 @@ export async function requestTokensFromRelayer(address: string) {
   console.log('in request tokens');
   try {
     const response = await axios.post(
-      'http://localhost:4000/tokens',
+      relayerURL + 'tokens',
       {
         address: address,
       },
@@ -64,7 +65,7 @@ export async function requestTokensFromRelayer(address: string) {
 
 export async function requestLatestUpdateTimestamp() {
   try {
-    const reponse = await axios.get('http://localhost:4000/update', {
+    const reponse = await axios.get(relayerURL + 'update', {
       headers: {
         'Content-type': 'application/json; charset=UTF-8',
       },
