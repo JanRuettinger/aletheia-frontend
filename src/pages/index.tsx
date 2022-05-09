@@ -1,20 +1,21 @@
+import { poseidon } from 'circomlibjs'; // v0.0.8
 import { ethers } from 'ethers';
 import React, { useEffect, useState } from 'react';
 import {
-  useConnect,
   useAccount,
-  useNetwork,
+  useConnect,
   useContract,
   useContractWrite,
+  useNetwork,
   useProvider,
 } from 'wagmi';
-import Alert from '../components/Alert';
-import { ZkuNFTABI } from '../../contracts/ZKUNFTABI';
-import { OrcaNFTABI } from '../../contracts/OrcaNFTABI';
-import { AlethieiaABI } from '../../contracts/AlethieiaABI';
-import { poseidon } from 'circomlibjs'; // v0.0.8
+
 import { requestTokensFromRelayer, sendICToRelayer } from '../api';
+import Alert from '../components/Alert';
 import LoadingSpinner from '../components/LoadingSpinner';
+import { AlethieiaABI } from '../../contracts/AlethieiaABI';
+import { OrcaNFTABI } from '../../contracts/OrcaNFTABI';
+import { ZkuNFTABI } from '../../contracts/ZKUNFTABI';
 
 export const useIsMounted = () => {
   const [mounted, setMounted] = React.useState(false);
@@ -84,7 +85,7 @@ export default function Home() {
     signerOrProvider: provider,
   });
 
-  const [{}, safeMintZKU] = useContractWrite(
+  const [, safeMintZKU] = useContractWrite(
     {
       addressOrName: ZKUNFTContractAddress,
       contractInterface: ZkuNFTABI,
@@ -99,7 +100,7 @@ export default function Home() {
   });
 
   // contractWriteORCANFT
-  const [{}, safeMintORCA] = useContractWrite(
+  const [, safeMintORCA] = useContractWrite(
     {
       addressOrName: ORCANFTContractAddress,
       contractInterface: OrcaNFTABI,
@@ -180,7 +181,7 @@ export default function Home() {
     };
 
     return unsubscribe;
-  }, [provider]);
+  }, [getNumMintedNFTs, provider]);
 
   const formatTimeStamp = (timestamp) => {
     const date = new Date(timestamp * 1000);
@@ -387,7 +388,7 @@ export default function Home() {
           </div>
         </div>
         <div className='mt-16'>Supported websites:</div>
-        <div>What to learn more what's happening behind the scenes?</div>
+        <div>What to learn more what&apos;s happening behind the scenes?</div>
       </main>
     </div>
   );

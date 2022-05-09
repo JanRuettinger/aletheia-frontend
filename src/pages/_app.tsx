@@ -4,8 +4,12 @@ import { InjectedConnector, Provider, chain, defaultChains } from 'wagmi';
 import { providers } from 'ethers';
 import '../styles/index.css';
 
+// const provider = new ApiHarmonyProvider('https://a.api.s0.t.hmny.io/');
+// const provider = new providers.PocketProvider('harmonymainnet');
+// const provider = new providers.Web3Provider(web3.currentProvider);
+
 const PROVIDER_URL = process.env.NEXT_PUBLIC_PROVIDER_URL;
-const CHAIN_ID = process.env.NEXT_PUBLIC_CHAIN_ID;
+const CHAIN_ID = parseInt(process.env.NEXT_PUBLIC_CHAIN_ID);
 
 const provider = new providers.JsonRpcProvider(PROVIDER_URL, CHAIN_ID);
 
@@ -13,9 +17,9 @@ const provider = new providers.JsonRpcProvider(PROVIDER_URL, CHAIN_ID);
 const chains = [
   {
     id: 1666700000,
-    name: 'Harmony Testnet Shard 0',
+    name: 'Harmony testnet Shard 0',
     rpcUrls: ['https://api.s0.b.hmny.io'],
-    nativeCurrency: { name: 'ONE', symbol: 'ONE', decimals: 18 as 18 },
+    nativeCurrency: { name: 'ONE', symbol: 'ONE', decimals: 18 as 18 }, // eslint-disable-line
     blockExplorers: [
       {
         name: 'Harmony Block Explorer',
