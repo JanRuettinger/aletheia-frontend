@@ -199,13 +199,14 @@ export default function Home() {
           <button
             className='bg-gray-700 text-white p-2 rounded-md mt-4'
             key={networkData.chains[0].id}
-            onClick={() =>
+            onClick={() => {
               switchNetwork(
                 networkData.chains[
                   process.env.NEXT_PUBLIC_VERCEL_ENV == 'production' ? 1 : 0
                 ].id
-              )
-            }
+              );
+              console.log('env:', process.env.NEXT_PUBLIC_VERCEL_ENV);
+            }}
           >
             Switch to Harmony{' '}
             {process.env.NEXT_PUBLIC_VERCEL_ENV == 'production'
