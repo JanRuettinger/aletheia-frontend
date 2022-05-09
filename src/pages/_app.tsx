@@ -4,25 +4,10 @@ import { InjectedConnector, Provider, chain, defaultChains } from 'wagmi';
 import { providers } from 'ethers';
 import '../styles/index.css';
 
-// const provider = new ApiHarmonyProvider('https://a.api.s0.t.hmny.io/');
-// const provider = new providers.PocketProvider('harmonymainnet');
-// const provider = new providers.Web3Provider(web3.currentProvider);
-const provider = new providers.JsonRpcProvider(
-  'https://api.s0.b.hmny.io',
-  1666700000
-);
+const PROVIDER_URL = process.env.NEXT_PUBLIC_PROVIDER_URL;
+const CHAIN_ID = process.env.NEXT_PUBLIC_CHAIN_ID;
 
-// const provider = new providers.JsonRpcProvider(
-//   'https://api.s0.b.hmny.io',
-//   1666700000
-// );
-
-// export type Network = {
-//   name: string,
-//   chainId: number,
-//   ensAddress?: string,
-//   _defaultProvider?: (providers: any, options?: any) => any
-// }
+const provider = new providers.JsonRpcProvider(PROVIDER_URL, CHAIN_ID);
 
 // Chains for connectors to support
 const chains = [
