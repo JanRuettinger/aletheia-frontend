@@ -57,7 +57,9 @@ export default function Home() {
       return;
     }
     console.log(userSecret, pubAddr);
-    const identityCommitment = poseidon([pubAddr, userSecret]);
+    const secret = ethers.utils.hexlify(ethers.utils.toUtf8Bytes(userSecret));
+    const identityCommitment = poseidon([pubAddr, secret]);
+    // const identityCommitment = poseidon([pubAddr, userSecret]);
     try {
       const resp = await sendICToRelayer(identityCommitment.toString());
       if (resp == true) {
