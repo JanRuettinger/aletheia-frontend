@@ -1,7 +1,8 @@
-import Head from 'next/head';
-import { AppProps } from 'next/app';
-import { InjectedConnector, Provider, chain, defaultChains } from 'wagmi';
 import { providers } from 'ethers';
+import { AppProps } from 'next/app';
+import Head from 'next/head';
+import { InjectedConnector, Provider } from 'wagmi';
+
 import '../styles/index.css';
 
 // const provider = new ApiHarmonyProvider('https://a.api.s0.t.hmny.io/');
@@ -19,6 +20,20 @@ const chains = [
     id: 1666700000,
     name: 'Harmony testnet Shard 0',
     rpcUrls: ['https://api.s0.b.hmny.io'],
+    nativeCurrency: { name: 'ONE', symbol: 'ONE', decimals: 18 as 18 }, // eslint-disable-line
+    blockExplorers: [
+      {
+        name: 'Harmony Block Explorer',
+        url: 'https://explorer.harmony.one',
+        standard: 'EIP3091',
+      },
+    ],
+    testnet: false,
+  },
+  {
+    id: 1666600000,
+    name: 'Harmony mainnet Shard 0',
+    rpcUrls: ['https://api.harmony.one'],
     nativeCurrency: { name: 'ONE', symbol: 'ONE', decimals: 18 as 18 }, // eslint-disable-line
     blockExplorers: [
       {

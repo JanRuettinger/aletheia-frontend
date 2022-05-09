@@ -57,7 +57,6 @@ export default function Home() {
     if (userSecret == '') {
       return;
     }
-    console.log(userSecret, pubAddr);
     const secret = ethers.utils.hexlify(ethers.utils.toUtf8Bytes(userSecret));
     const identityCommitment = poseidon([pubAddr, secret]);
     // const identityCommitment = poseidon([pubAddr, userSecret]);
@@ -72,7 +71,6 @@ export default function Home() {
       setAlertText('An error occured while adding your identity.');
       setAlertType('error');
       setAlertHidden(false);
-      console.log('in submit ');
     } finally {
       setTimeout(() => setAlertHidden(true), 2000);
       setIsLoading(false);
@@ -201,7 +199,13 @@ export default function Home() {
           <button
             className='bg-gray-700 text-white p-2 rounded-md mt-4'
             key={networkData.chains[0].id}
-            onClick={() => switchNetwork(networkData.chains[0].id)}
+            onClick={() =>
+              switchNetwork(
+                networkData.chains[
+                  process.env.VERCEL_ENV == 'production' ? 1 : 0
+                ].id
+              )
+            }
           >
             Switch to Harmony Testnet
           </button>
