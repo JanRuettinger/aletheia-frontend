@@ -48,6 +48,8 @@ export default function Home() {
   const MerkleTreeContractAddress =
     process.env.NEXT_PUBLIC_ALETHEIA_CONTRACT_ADDRESS;
 
+  const STARTBLOCK = parseInt(process.env.NEXT_PUBLIC_STARTBLOCK);
+
   const CHAIN_INDEX =
     process.env.NEXT_PUBLIC_VERCEL_ENV == 'production' ? 1 : 0;
 
@@ -135,19 +137,30 @@ export default function Home() {
   }
 
   async function getLatestEvent() {
-    // const eventFilter = contractMerkleTree.filters.RootChanged();
     const eventFilter = {
       address: process.env.NEXT_PUBLIC_ALETHEIA_CONTRACT_ADDRESS,
       topics: [ethers.utils.id('AttestationRootChanged(string,string)')],
     };
-    let events = await contractMerkleTree.queryFilter(eventFilter, -1000);
-    if (events.length == 0) {
-      events = await contractMerkleTree.queryFilter(eventFilter, -100000);
+
+    const endBlock = await provider.getBlockNumber();
+    let allEvents = [];
+
+    for (let i = STARTBLOCK; i < endBlock; i += 1000) {
+      const _startBlock = i;
+      const _endBlock = Math.min(endBlock, i + 1000);
+      const events = await contractMerkleTree.queryFilter(
+        eventFilter,
+        _startBlock,
+        _endBlock
+      );
+      allEvents = [...allEvents, ...events];
     }
-    const blockHash = events[events.length - 1].blockHash;
-    provider.getBlock(blockHash).then((block) => {
-      setLatestMerkleTreeUpdate(block.timestamp);
-    });
+    if (allEvents.length > 0) {
+      const blockHash = allEvents[allEvents.length - 1].blockHash;
+      provider.getBlock(blockHash).then((block) => {
+        setLatestMerkleTreeUpdate(block.timestamp);
+      });
+    }
   }
 
   useEffect(() => {
